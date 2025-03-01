@@ -1,0 +1,72 @@
+@page
+@model SocialMediaWebApp.Pages.YouTubeSearch.ShortDetails
+@{
+    ViewData["Title"] = "YT Short Details";
+}
+
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+    }
+    strong{
+        background-color: black;
+        color: white;
+    }
+    i{
+        background-color: black;
+        color: white;
+        text-align: justify;
+        font-weight: bold;
+    }
+</style>
+<h1>@ViewData["Title"]</h1>
+
+
+@if(Model.Video != null){
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h2>@Model.Video.Title</h2>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <div class="container">
+                        <iframe width="720" height="576" src="https://www.youtube.com/embed/@Model.Video.VideoId?rel=0" 
+                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Published at:</strong> @Model.Video.PublishedAt</p>
+                        </div>
+                        <div class="col">
+                            <p><strong>Channel: </strong> @Model.Video.ChannelTitle</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="container">
+                        <p><strong>Description:</strong> <i>@Model.Video.Description</i></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+
+        </div>
+    </div>
+} else {
+    <p>Short details not available.</p>
+}
+
+@if(!ModelState.IsValid){
+    <div class="alert alert-danger">
+        @foreach(var error in ModelState.Values.SelectMany(v => v.Errors)){
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}

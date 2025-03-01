@@ -1,0 +1,103 @@
+@page
+@model SocialMediaWebApp.Pages.LanguageProcessing.Sentiments
+@{
+    ViewData["Title"] = "SavedLanguageFeatures";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+</style>
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>Search Document Occurences By Language Features</h4>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" id="title" name="title" class="form-control-plaintext" 
+                                    value="@Model.Title"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="searchString" class="form-label">Search String</label>
+                                <input type="text" id="searchString" name="searchString" class="form-control-plaintext" 
+                                    value="@Model.SearchString" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>                    
+                </form>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card-header">
+                <h3>NLP - Occurence Results</h3>
+            </div>   
+            <hr>  
+            <div class="card-header">
+                <h3>Sentiment Analysis</h3>
+            </div>    
+            <hr>               
+            <div class="card-body">
+                @if (Model.sentimentsData != null && Model.sentimentsData.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Sentence</th>
+                                <th>SearchString</th>
+                                <th>Positive</th>
+                                <th>Negative</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model.sentimentsData)
+                            {
+                                <tr>
+                                    <td>@result.Title</td>
+                                    <td>@result.Sentence</td>
+                                    <td>@result.SearchString</td>
+                                    @if (float.Parse(result.Positive) >= float.Parse(result.Negative)){
+                                        <td style="background-color: green; color: white;">@result.Positive</td>
+                                        <td>@result.Negative</td>
+                                    } else if (float.Parse(result.Positive) <= float.Parse(result.Negative)){
+                                        <td>@result.Positive</td>
+                                        <td style="background-color: red; color: white;">@result.Negative</td>
+                                    } else {
+                                        <td>@result.Positive</td>
+                                        <td>@result.Negative</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No search results found or unable to fetch data.</p>
+                }
+            </div>            
+        </div>
+    </div>
+    
+</div>

@@ -1,0 +1,284 @@
+@page
+@model SocialMediaWebApp.Pages.Documents.RawPrompts
+@{
+    ViewData["Title"] = "Gemini Raw Prompts";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+</style>
+
+<div class="row">
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Documents/FormatRawPrompts">Format Prompts</a>
+    </div>
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Documents/TextOccurenceSearch">Search Document</a>
+    </div>
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/LanguageProcessing/TextOccurenceLanguageFeatures">Language Features</a>
+    </div>    
+</div>
+
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>Prompt Gemini gemini-1.5-flash LLM.</h4>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="promptString" class="form-label">Prompt String</label>
+                                <textarea 
+                                    name="promptString" id="promptString" 
+                                    class="form-control-plaintext" value="@Model.PromptString" 
+                                    autocomplete="off" spellcheck="false">
+
+                                </textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="textPath" class="form-label">Text Path</label>
+                                <input type="text" id="textPath" name="textPath" class="form-control" value="@Model.TextPath" autocomplete="off" spellcheck="false"/>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card-header">
+                <h4>Prompts Results</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group card-header">
+                    <label for="id" class="form-control-plaintext text-white">Param.</label>
+                    <input type="text" id="param" class="form-control-plaintext text-white"  autocomplete="off" spellcheck="false">
+                </div>
+                <hr>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <button class="bg-btn-block btn-lg text-white bg-dark" onclick="getRawDocument()">Get Document by Id</button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <button class="bg-btn-block btn-lg text-white bg-dark" onclick="getRawDocuments()">Get Documents</button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <button class="bg-btn-block btn-lg text-white bg-dark" onclick="searchRawDocuments()">Search Document</button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <button class="bg-btn-block btn-lg text-white bg-dark" onclick="deleteRawDocument()">Delete Document</button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <button class="bg-btn-block btn-lg bg-dark text-white" onclick="promptMistral()">promptMistral Prompt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                <div class="card-footer">
+                    <pre id="message"></pre>
+                </div>  
+                <hr>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>PromptString</th>
+                            <th>CreatedAT</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        
+                    </tbody>
+                </table>
+                <hr>
+                
+                @if (!ModelState.IsValid)
+                {
+                    <div class="alert alert-dark text-white bg-dark text-white">
+                        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p>@error.ErrorMessage</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function promptMistral(){
+            const promptString = document.getElementById('promptString');
+            const textPath = document.getElementById('textPath');
+            const message = document.getElementById('message');
+            if(promptString && textPath){
+                fetch(`http://localhost:5082/api/GeminiApi/generate-prompt-using-mistral-ai?prompt_string=${promptString.value}&output_doc=${textPath.value}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(item => {
+                        message.innerHTML = item.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+
+            }
+            
+        }
+        function getRawDocuments(){
+            console.log('Script executed');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/GeminiApi/get-raw-documents`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var id = row.insertCell(0);
+                        var promptString = row.insertCell(1);
+                        var createdAT = row.insertCell(2);
+                        var detail = row.insertCell(3);
+
+                        id.textContent = item.id || "N/A";
+                        promptString.textContent = item.promptString || 'N/A';
+                        createdAT.textContent = item.createdAT || 'N/A';
+
+                        // Create the action links
+                        const link = document.createElement('a');
+                        link.href = `http://localhost:5082/api/GeminiApi/load-file?filePath=${item.textPath}`;
+                        link.textContent = 'Document';
+                                            
+                        detail.appendChild(link);                    
+                    })
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function searchRawDocuments(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/GeminiApi/search-raw-prompt?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var promptString = row.insertCell(1);
+                            var createdAT = row.insertCell(2);
+                            var detail = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            promptString.textContent = item.promptString || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';
+
+                            // Create the action links
+                            const link = document.createElement('a');
+                            link.href = `http://localhost:5082/api/GeminiApi/load-file?filePath=${item.textPath}`;
+                            link.textContent = 'Document';
+                                                
+                            detail.appendChild(link);                    
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function deleteRawDocument(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('message');
+            if(param){
+                fetch(`http://localhost:5082/api/GeminiApi/DeleteRawDocument?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getRawDocument()
+        {
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/GeminiApi/get-raw-document?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var promptString = row.insertCell(1);
+                            var createdAT = row.insertCell(2);
+                            var detail = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            promptString.textContent = item.promptString || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';
+
+                            // Create the action links
+                            const link = document.createElement('a');
+                            link.href = `http://localhost:5082/api/GeminiApi/load-file?filePath=${item.textPath}`;
+                            link.textContent = 'Document';
+                                                
+                            detail.appendChild(link);                    
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+    </script>
+}

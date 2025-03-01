@@ -1,0 +1,248 @@
+@page
+@model SocialMediaWebApp.Pages.Documents.PromptContextSearch
+@{
+    ViewData["Title"] = "Prompt Sentiment Search";
+}
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+    thead{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+</style>
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>Search Sentiments</h4>
+            </div>
+            
+            <hr>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Text File Path</label>
+                                <input type="text" id="file" name="file" class="form-control-plaintext" 
+                                    value="@Model.FilePath"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="prompt" class="form-label">Prompt String</label>
+                                <input type="text" id="prompt" name="prompt" class="form-control" 
+                                    value="@Model.PromptString" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="State" class="form-label">State: Positive, Negative, Neutral</label>
+                                <input type="text" id="State" name="State" class="form-control" 
+                                    value="@Model.State" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>                    
+                </form>
+            </div>            
+        </div>
+        <div class="col">
+            <div class="card-header">
+                <h3>Prompt Results</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Prompt</th>
+                            <th>State</th>
+                            <th>Sentences</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sentimentsTableBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>Matched Text Actions</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="id" class="form-control-plaintext text-white">Param.</label>
+                    <input type="text" id="param" class="form-control-plaintext"  autocomplete="off" spellcheck="false">
+                </div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary" onclick="searchSentiments()">Search</button>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getSentiment()">Get</button>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getSentiments()">Get Range</button>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary form-control-plaintext" onclick="deleteSentiment()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function searchSentiments(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('sentimentsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/TextAnalysisApi/get-sentiment-search-by-prompt?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var promptString = row.insertCell(0);
+                            var state = row.insertCell(1);
+                            var concatenatedSentences = row.insertCell(2);
+                            var ttsSpeech = row.insertCell(3);
+
+                            
+                            promptString.textContent = `Id: ${item.id} | ${item.promptString}` || "N/A";
+                            state.textContent = item.state || 'N/A';
+                            concatenatedSentences.textContent = item.concatenatedSentences || 'N/A';
+                            
+                            const link1 = document.createElement('a');
+                            link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.concatenatedSentences} || 'N/A'}`;
+                            link1.textContent = "Speak" || 'N/A';
+                            link1.style = "font-size: small;";
+                                                
+                            ttsSpeech.appendChild(link1);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getSentiment(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('sentimentsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/TextAnalysisApi/get-sentiment-search-by-id?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var promptString = row.insertCell(0);
+                            var state = row.insertCell(1);
+                            var concatenatedSentences = row.insertCell(2);
+                            var ttsSpeech = row.insertCell(3);
+
+                            
+                            promptString.textContent = `Id: ${item.id} | ${item.promptString}` || "N/A";
+                            state.textContent = item.state || 'N/A';
+                            concatenatedSentences.textContent = item.concatenatedSentences || 'N/A';
+                            
+                            const link1 = document.createElement('a');
+                            link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.concatenatedSentences} || 'N/A'}`;
+                            link1.textContent = "Speak" || 'N/A';
+                            link1.style = "font-size: small;";
+                                                
+                            ttsSpeech.appendChild(link1);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getSentiments(){
+            const tableBody = document.getElementById('sentimentsTableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/TextAnalysisApi/get-top-sentiments-search`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var promptString = row.insertCell(0);
+                        var state = row.insertCell(1);
+                        var concatenatedSentences = row.insertCell(2);
+                        var ttsSpeech = row.insertCell(3);
+
+                        
+                        promptString.textContent = `Id: ${item.id} | ${item.promptString}` || "N/A";
+                        state.textContent = item.state || 'N/A';
+                        concatenatedSentences.textContent = item.concatenatedSentences || 'N/A';
+                        
+                        const link1 = document.createElement('a');
+                        link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.concatenatedSentences} || 'N/A'}`;
+                        link1.textContent = "Speak" || 'N/A';
+                        link1.style = "font-size: small;";
+                                            
+                        ttsSpeech.appendChild(link1);
+
+                    });
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function deleteSentiment(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('messageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/TextAnalysisApi/DeleteSentimentSearch?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(data.message);
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+    </script>
+}

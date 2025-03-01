@@ -1,0 +1,252 @@
+@page
+@model SocialMediaWebApp.Pages.Documents.NewsArticlePrompts
+@{
+    ViewData["Title"] = "News Article Prompts";
+}
+
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+</style>
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">            
+            <div class="row">
+                <div class="col">
+                    <div class="card-header">
+                        <h4>News Article Prompting</h4>
+                    </div>
+                    <hr>
+                    <div class="card-body">
+                        <form method="get">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="mb-3">
+                                        <label for="title" class="form-label">Title</label>
+                                        <input type="text" id="title" name="title" class="form-control-plaintext" 
+                                            value="@Model.Title"
+                                            autocomplete="off" spellcheck="false" required/>
+                                    </div>
+                                    <hr>
+                                    <div class="mb-3">
+                                        <label for="keywords" class="form-label">Keywords</label>
+                                        <input type="text" id="keywords" name="keywords" class="form-control" 
+                                            value="@Model.Keywords" 
+                                            autocomplete="off" spellcheck="false" required/>
+                                    </div>
+                                    <hr>
+                                    <div class="mb-3">
+                                        <label for="promptString" class="form-label">Prompt</label>
+                                        <textarea type="text" id="promptString" name="promptString" class="form-control" 
+                                            value="@Model.PromptString" 
+                                            autocomplete="off" spellcheck="false" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Search</button>
+                            </div>                    
+                        </form>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card-header">
+                    <h3>News Articles Prompts Results.</h3>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="id" class="form-control-plaintext text-dark">Param.</label>
+                        <input type="text" id="param" class="form-control-plaintext"  autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" onclick="searchNewsPrompts()">Search</button>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getNewsPrompt()">Get</button>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getNewsPrompts()">Get Range</button>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control-plaintext" onclick="deleteNewsPrompt()">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </div>        
+    </div>
+    <div class="col">
+        <div class="card-header">
+            <h4>Saved News Articles Prompts.</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Keywords</th>
+                        <th>PromptString</th>
+                        <th>Output</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" style="font-size: small;">
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">    
+        function searchNewsPrompts(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/NewsPromptsApi/search-news-prompt?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var title = row.insertCell(0);
+                            var keywords = row.insertCell(1);
+                            var promptString = row.insertCell(2);
+                            var output = row.insertCell(3);
+                            var ttsSpeech = row.insertCell(4);
+
+
+                            title.textContent = `${item.id} | ${item.title}` || "N/A";
+                            keywords.textContent = item.keywords || "N/A";
+                            promptString.textContent = item.promptString || "N/A";
+                            output.textContent = item.output || 'N/A';
+
+                            const link1 = document.createElement('a');
+                            link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.output} || 'N/A'}`;
+                            link1.textContent = "Speak" || 'N/A';
+                            link1.style = "font-size: small;";
+                                                
+                            ttsSpeech.appendChild(link1); 
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getNewsPrompt(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/NewsPromptsApi/get-news-prompt?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var title = row.insertCell(0);
+                            var keywords = row.insertCell(1);
+                            var promptString = row.insertCell(2);
+                            var output = row.insertCell(3);
+                            var ttsSpeech = row.insertCell(4);
+
+
+                            title.textContent = `${item.id} | ${item.title}` || "N/A";
+                            keywords.textContent = item.keywords || "N/A";
+                            promptString.textContent = item.promptString || "N/A";
+                            output.textContent = item.output || 'N/A';
+
+                            const link1 = document.createElement('a');
+                            link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.output} || 'N/A'}`;
+                            link1.textContent = "Speak" || 'N/A';
+                            link1.style = "font-size: small;";
+                                                
+                            ttsSpeech.appendChild(link1); 
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getNewsPrompts(){
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/NewsPromptsApi/get-news-prompts`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var title = row.insertCell(0);
+                        var keywords = row.insertCell(1);
+                        var promptString = row.insertCell(2);
+                        var output = row.insertCell(3);
+                        var ttsSpeech = row.insertCell(4);
+
+
+                        title.textContent = `${item.id} | ${item.title}` || "N/A";
+                        keywords.textContent = item.keywords || "N/A";
+                        promptString.textContent = item.promptString || "N/A";
+                        output.textContent = item.output || 'N/A';
+
+                        const link1 = document.createElement('a');
+                        link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.output} || 'N/A'}`;
+                        link1.textContent = "Speak" || 'N/A';
+                        link1.style = "font-size: small;";
+                                            
+                        ttsSpeech.appendChild(link1); 
+                    });
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function deleteNewsPrompt(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('messageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/NewsPromptsApi/DeleteNewsPrompt?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+    </script>
+}

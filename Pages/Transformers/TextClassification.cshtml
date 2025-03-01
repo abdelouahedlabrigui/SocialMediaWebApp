@@ -1,0 +1,78 @@
+@page
+@model SocialMediaWebApp.Pages.Transformers.TextClassification
+@{
+    ViewData["Title"] = "Text Classification";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="card">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card-header">
+                <h3>Text Classification Review.</h3>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="options" class="form-label">Options</label>
+                                <select name="options" id="options" class="form-control-plaintext">
+                                    @foreach(string item in Model.Options ?? new List<string>()){
+                                        <option value="@item">@item</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-group">
+                                    <label for="id" class="form-control-plaintext text-white">Param.</label>
+                                    <input type="text" name="optionValue" value="@Model.OptionValue" 
+                                        class="form-control-plaintext"  autocomplete="off" spellcheck="false">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>                    
+                </form>
+            </div>
+        </div>
+        <div class="col">
+            @if (Model.llmTextClassifications != null && Model.llmTextClassifications.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Title</th>
+                            <th>Text</th>
+                            <th>Label</th>
+                            <th>Score</th>
+                            <th>CreatedAT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var result in Model.llmTextClassifications)
+                        {
+                            <tr>
+                                <td>@result.Id</td>
+                                <td>@result.Title</td>
+                                <td>@result.Text</td>
+                                <td>@result.Label</td>
+                                <td>@result.Score</td>
+                                <td>@result.CreatedAT</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No search results found or unable to fetch data.</p>
+            }
+        </div>
+    </div>
+</div>

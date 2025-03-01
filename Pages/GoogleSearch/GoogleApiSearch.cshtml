@@ -1,0 +1,96 @@
+@page
+@model SocialMediaWebApp.Pages.GoogleSearch.GoogleApiSearch
+@{
+    ViewData["Title"] = "Google Search";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+    a{
+        color: black;
+    }
+</style>
+
+<h1>Google API Search</h1>
+<hr>
+<div class="row">
+    <div class="col-md-4">
+        <a class="nav-link text-dark" asp-area="" asp-page="/GoogleSearch/PdfContentExtraction">Pdf Content</a>
+    </div>
+</div>
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>Search string</h4>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label for="search" class="form-label">Search Query</label>
+                        <input type="text" id="search" name="search" class="form-control" value="@Model.Search" autocomplete="off" spellcheck="false"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card-header">
+                <h4>Search Results</h4>
+            </div>
+            <div class="card-body">
+                @if (Model.SearchResults != null && Model.SearchResults.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Snippet</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model.SearchResults)
+                            {                                
+                                <tr>
+                                    @if(result.Link.Contains(".pdf")){
+                                        <td><a href="@result.Link">@result.Title</a> <i style="background-color: hotpink; color: white;">.pdf</i></td>
+                                    } else {
+                                        <td><a href="@result.Link">@result.Title</a></td>
+                                    }
+                                    <td>@result.Snippet</td>
+                                    <td>
+                                        <a href="http://localhost:5082/api/PdfApi/save-pdf?title=@result.Title&url=@result.Link" 
+                                            target="_blank" class="news-title-link">
+                                            Save
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No search results found or unable to fetch data.</p>
+                }
+
+                @if (!ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p>@error.ErrorMessage</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

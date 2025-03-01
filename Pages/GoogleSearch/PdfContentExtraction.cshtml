@@ -1,0 +1,203 @@
+@page
+@model SocialMediaWebApp.Pages.GoogleSearch.PdfContentExtraction
+@{
+    ViewData["Title"] = "Pdf Content Extraction";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>Search PDF documents</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="id" class="form-control-plaintext text-white">Param.</label>
+                    <input type="text" id="param" class="form-control-plaintext"  autocomplete="off" spellcheck="false">
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" onclick="searchPdfDocuments()">Search</button>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getPdfDocument()">Get</button>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getPdfDocuments()">Get Range</button>
+                        </div>
+                        <hr>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary form-control-plaintext" onclick="deletePdfDocument()">Delete</button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <pre id="messageResponse"></pre>
+            </div>
+        </div>
+    </div>
+    <div class="col">            
+            <div class="card-header">
+                <h4>Search Results</h4>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Title</th>
+                            <th>Extract</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        function deletePdfDocument(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('messageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/PdfApi/DeletePdf?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getPdfDocument()
+        {
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/PdfApi/get-pdf?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var id = row.insertCell(0);
+                        id.textContent = item.id || "N/A";
+
+                        var titleLink = row.insertCell(1);
+                        const link1 = document.createElement('a');
+                        link1.href = `${item.offlineUrl}`;
+                        link1.textContent = item.title || 'N/A';
+                                            
+                        titleLink.appendChild(link1); 
+
+                        var extractLink = row.insertCell(2);
+                        const link2 = document.createElement('a');
+                        link2.href = `http://localhost:5082/api/PdfApi/extract-text?pdfFilePath=${item.offlineUrl}&title=${item.title}`;
+                        link2.textContent = "extract" || 'N/A';
+                                            
+                        extractLink.appendChild(link2);   
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getPdfDocuments(){
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/PdfApi/get-pdfs`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var id = row.insertCell(0);
+                        id.textContent = item.id || "N/A";
+
+                        var titleLink = row.insertCell(1);
+                        const link1 = document.createElement('a');
+                        link1.href = `${item.offlineUrl}`;
+                        link1.textContent = item.title || 'N/A';
+                                            
+                        titleLink.appendChild(link1); 
+
+                        var extractLink = row.insertCell(2);
+
+                        const link2 = document.createElement('a');
+                        link2.href = `http://localhost:5082/api/PdfApi/extract-text?pdfFilePath=${item.offlineUrl}&title=${item.title}`;
+                        link2.textContent = "extract" || 'N/A';
+                                            
+                        extractLink.appendChild(link2);   
+                    });
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+
+        function searchPdfDocuments(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/PdfApi/search-pdfs?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                        var id = row.insertCell(0);
+                        id.textContent = item.id || "N/A";
+
+                        var titleLink = row.insertCell(1);
+                        const link1 = document.createElement('a');
+                        link1.href = `${item.offlineUrl}`;
+                        link1.textContent = item.title || 'N/A';
+                                            
+                        titleLink.appendChild(link1); 
+
+                        var extractLink = row.insertCell(2);
+
+                        const link2 = document.createElement('a');
+                        link2.href = `http://localhost:5082/api/PdfApi/extract-text?pdfFilePath=${item.offlineUrl}&title=${item.title}`;
+                        link2.textContent = "extract" || 'N/A';
+                                            
+                        extractLink.appendChild(link2);   
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+    </script>
+}

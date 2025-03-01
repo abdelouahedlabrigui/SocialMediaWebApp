@@ -1,0 +1,421 @@
+@page
+@model SocialMediaWebApp.Pages.Transformers.QuestionsStore
+@{
+    ViewData["Title"] = "QuestionsStore";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>News Questions.</h4>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="textPath" class="form-label">Text Path</label>
+                                <input type="text" id="textPath" name="textPath" class="form-control-plaintext" 
+                                    value="@Model.TextPath"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" id="title" name="title" class="form-control" 
+                                    value="@Model.Title" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="searchString" class="form-label">Search String</label>
+                                <input type="text" id="searchString" name="searchString" class="form-control" 
+                                    value="@Model.SearchString" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="question" class="form-label">Question</label>
+                                <input type="text" id="question" name="question" class="form-control" 
+                                    value="@Model.Question" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>                    
+                </form>
+            </div>
+            <hr>
+            <div class="card-header">
+                <h3>Search Text Documents.</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="id" class="form-control-plaintext text-dark">Param.</label>
+                    <input type="text" id="param" class="form-control-plaintext"  autocomplete="off" spellcheck="false">
+                </div>
+                <hr>
+                <div class="card-body">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" onclick="getQuestions()">Get Range</button>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getQuestionsBySearch()">Search</button>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary form-control-plaintext" onclick="deleteQuestion()">Delete</button>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getQuestionById()">Get by Id</button>
+                    </div>
+                    <hr/>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary form-control-plaintext" onclick="searchRawDocuments()">Search Prompts</button>
+                    </div>
+                    <hr/>
+                </div>
+                <hr>
+                <pre id="messageResponse"></pre>                
+            </div>
+            <hr>
+            <div class="card-header">
+                <h3>Answer Questions.</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="titleInput">Question Title</label>
+                    <input type="text" id="titleInput" 
+                        autocomplete="off" spellcheck="false" class="form-control-plaintext">
+                </div>
+                <div class="form-group">
+                    <label for="textInput">Searched Text</label>
+                    <input type="text" id="textInput" 
+                        autocomplete="off" spellcheck="false" class="form-control-plaintext">
+                </div>
+                <div class="form-group">
+                    <label for="questionInput">Question String</label>
+                    <input type="text" id="questionInput" 
+                        autocomplete="off" spellcheck="false" class="form-control-plaintext">
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label for="Sectors">Sectors</label>
+                    <select name="sectors" id="sectors" class="form-control-plaintext bg-dark text-white" style="font-weight: bolder;">
+                        <option value="medical">medical</option>
+                        <option value="spatial">spatial</option>
+                        <option value="technology">technology</option>
+                        <option value="coding">coding</option>
+                    </select>
+                </div>
+                <hr>  
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="actor">Actor</label>
+                            <input type="text" id="actor" 
+                                autocomplete="off" spellcheck="false" class="form-control-plaintext">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="response">Response</label>
+                            <input type="text" id="response" 
+                                autocomplete="off" spellcheck="false" class="form-control-plaintext">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row container">
+                <div class="col">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary form-control-plaintext" onclick="question_answering()">Question Answering.</button>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary form-control-plaintext" onclick="text_generation()">Text Generation.</button>
+                    </div>
+                </div>
+            </div>
+            <hr>
+        </div>
+        <div class="col">
+            <hr>
+            <div class="card-header">
+                <h4>Saved Questions.</h4>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>TextPath</th>
+                            <th>Title</th>
+                            <th>SearchString</th>
+                            <th>Question</th>
+                            <th>CreatedAT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionsTableBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-header">
+                <h4>Saved Prompts.</h4>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Title</th>
+                            <th>Name</th>
+                            <th>CreatedAT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rawDocumentsTableBody">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        function question_answering(){
+            const title = document.getElementById('titleInput');
+            const text = document.getElementById('textInput');
+            const question = document.getElementById('questionInput');
+            const sectors = document.getElementById('sectors');
+
+            if(title && text && question && sectors){
+                fetch(`http://localhost:5082/api/Transformers/question-answering?title=${encodeURIComponent(title.value)}&text=${encodeURIComponent(text.value)}&question=${encodeURIComponent(question.value)}&sector=${encodeURIComponent(sectors.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function text_generation(){
+            const title = document.getElementById('titleInput');
+            const text = document.getElementById('textInput');
+            const question = document.getElementById('questionInput');
+            const actor  = document.getElementById('actor');
+            const response = document.getElementById('response');
+            const sectors = document.getElementById('sectors');
+            if(title && text && actor && response && sectors){
+                fetch(`http://localhost:5082/api/Transformers/text-generation?title=${encodeURIComponent(title.value)}&text=${encodeURIComponent(text.value)}&actor=${encodeURIComponent(actor.value)}&response=${encodeURIComponent(response.value)}&sector=${encodeURIComponent(sectors.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getQuestions(){
+            const tableBody = document.getElementById('questionsTableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/NewsQuestions/get-questions`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var id = row.insertCell(0);
+                        var textPath = row.insertCell(1);
+                        var title = row.insertCell(2);
+                        var searchString = row.insertCell(3);
+                        var question = row.insertCell(4);
+                        var createdAT = row.insertCell(5);
+
+
+                        id.textContent = item.id || "N/A";
+                        // Create the action links
+                        const link = document.createElement('a');
+                        link.href = `${item.textPath}`;
+                        link.textContent = 'Document';                                                
+                        textPath.appendChild(link);
+                        title.textContent = item.title || 'N/A';
+                        searchString.textContent = item.searchString || 'N/A';
+                        question.textContent = item.question || 'N/A';
+                        createdAT.textContent = item.createdAT || 'N/A';
+                                            
+                    })
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function getQuestionsBySearch(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('questionsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/NewsQuestions/get-questions-by-search?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var textPath = row.insertCell(1);
+                            var title = row.insertCell(2);
+                            var searchString = row.insertCell(3);
+                            var question = row.insertCell(4);
+                            var createdAT = row.insertCell(5);
+
+
+                            id.textContent = item.id || "N/A";
+                            // Create the action links
+                            const link = document.createElement('a');
+                            link.href = `${item.textPath}`;
+                            link.textContent = 'Document';                                                
+                            textPath.appendChild(link);
+                            title.textContent = item.title || 'N/A';
+                            searchString.textContent = item.searchString || 'N/A';
+                            question.textContent = item.question || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';          
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function deleteQuestion(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('message');
+            if(param){
+                fetch(`http://localhost:5082/api/NewsQuestions/delete-question?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getQuestionById()
+        {
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('questionsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/NewsQuestions/get-question-by-id?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var textPath = row.insertCell(1);
+                            var title = row.insertCell(2);
+                            var searchString = row.insertCell(3);
+                            var question = row.insertCell(4);
+                            var createdAT = row.insertCell(5);
+
+
+                            id.textContent = item.id || "N/A";
+                            // Create the action links
+                            const link = document.createElement('a');
+                            link.href = `${item.textPath}`;
+                            link.textContent = 'Document';                                                
+                            textPath.appendChild(link);
+                            title.textContent = item.title || 'N/A';
+                            searchString.textContent = item.searchString || 'N/A';
+                            question.textContent = item.question || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';              
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+
+        function searchRawDocuments(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('rawDocumentsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/GeminiApi/search-raw-prompt?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var promptString = row.insertCell(1);
+                            var createdAT = row.insertCell(2);
+                            var detail = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            promptString.textContent = item.promptString || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';
+
+                            // Create the action links
+                            const link = document.createElement('a');
+                            link.href = `http://localhost:5082/api/GeminiApi/load-file?filePath=${item.textPath}`;
+                            link.textContent = 'Document';
+                                                
+                            detail.appendChild(link);                    
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        
+    </script>
+}

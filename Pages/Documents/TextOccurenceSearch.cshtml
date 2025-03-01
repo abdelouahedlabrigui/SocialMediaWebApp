@@ -1,0 +1,603 @@
+@page
+@model SocialMediaWebApp.Pages.Documents.TextOccurenceSearch
+@{
+    ViewData["Title"] = "Text Occurence Search";
+}
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+    .llm_link{
+        font-size: small;
+    }
+    select {
+        background-color: black;
+        color: white;
+    }
+</style>
+<h1>@ViewData["Title"]</h1>
+<hr>
+<div class="row">
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/TextClassification">Text Classification</a>
+    </div> 
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/NamedEntityRecognition">Named Entity Recognition</a>
+    </div>  
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/TextSummarization">Text Summarization</a>
+    </div> 
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/TextTranslation">Text Translation</a>
+    </div> 
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/TextGeneration">Text Generation</a>
+    </div>  
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/QuestionAnswering">Question Answering</a>
+    </div> 
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Transformers/QuestionsStore">Questions Store</a>
+    </div>  
+</div>
+<hr>
+<div class="card">
+    <div class="row">   
+        <div class="col">
+            <div class="card-header">
+                <h4>Search Document Occurences</h4>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="textFilePath" class="form-label">Text File Path</label>
+                                <input type="text" id="textFilePath" name="textFilePath" class="form-control-plaintext" 
+                                    value="@Model.TextFilePath"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="container">
+                                <select name="sectors" id="sectors" class="form-control-plaintext bg-dark text-white">
+                                    @foreach(string sector in Model.sectorsList){
+                                        <option value="@sector">@sector</option>
+                                    }
+                                </select>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="searchString" class="form-label">Search String</label>
+                                <input type="text" id="searchString" name="searchString" class="form-control" 
+                                    value="@Model.SearchString" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <hr>
+                            <div class="mb-3">
+                                <label for="contextLength" class="form-label">Context Length</label>
+                                <input type="text" id="contextLength" name="contextLength" class="form-control" 
+                                    value="@Model.ContextLength" 
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>                    
+                </form>
+            </div>
+            
+            <hr>
+            <div class="card-header">
+                <h3>Search Text Documents.</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="id" class="form-control-plaintext text-white">Param.</label>
+                    <input type="text" id="param" class="form-control-plaintext"  autocomplete="off" spellcheck="false">
+                </div>
+                <hr>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="card-header">
+                            <h4>Saved Text Files Actions</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary" onclick="searchTextDocuments()">Search</button>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getTextDocument()">Get</button>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getTextDocuments()">Get Range</button>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary form-control-plaintext" onclick="deleteTextDocument()">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card-header">
+                            <h4>Matched Text Actions</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary" onclick="searchTextOccurences()">Search</button>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getTextOccurence()">Get</button>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary form-control-plaintext" onclick="getTextOccurences()">Get Range</button>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary form-control-plaintext" onclick="deleteOccurence()">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <pre id="messageResponse"></pre>
+                <hr>
+                <div class="card-header">
+                    <h4>Saved Text Files.</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Title</th>
+                                <th>Name</th>
+                                <th>CreatedAT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-header">
+                    <h4>Saved Searches.</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                @* <th>SearchString</th> *@
+                                @* <th>Occurrence</th> *@
+                                <th>Context</th>
+                                <th colspan="4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="textMatchingTableBody">
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card-header">
+                <h3>Occurence Results</h3>
+            </div>
+            <div class="card-body">
+                @if (Model.occurenceSearches != null && Model.occurenceSearches.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Search</th>
+                                <th>Context</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model.occurenceSearches)
+                            {
+                                <tr>
+                                    <td>@result.Title</td>
+                                    <td>SearchString: @result.SearchString, Occurrence: @result.Occurrence</td>
+                                    <td>@result.Context</td>
+                                    <td>
+                                        <ol>
+                                            <li>
+                                                <a href="http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=@result.Context">Read</a>
+                                            </li>
+                                            <li><a href="http://localhost:5082/api/TextAnalysisApi/post-search-match?searchString=@result.SearchString&context=@result.Context&title=@result.Title&occurence=@result.Occurrence">
+                                                Add</a></li>
+                                            <li>
+                                                <a 
+                                                    class="llm_link" 
+                                                    href="http://localhost:5082/api/Transformers/text-classification?title=@result.Title&text=@result.Context&sector=@result.Sector">
+                                                    text classification
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a 
+                                                    class="llm_link" 
+                                                    href="http://localhost:5082/api/Transformers/ner-tagger?title=@result.Title&text=@result.Context&sector=@result.Sector">
+                                                    ner tagger
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a 
+                                                    class="llm_link" 
+                                                    href="http://localhost:5082/api/Transformers/summarization?title=@result.Title&text=@result.Context&sector=@result.Sector">
+                                                    summarization
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a 
+                                                    class="llm_link" 
+                                                    href="http://localhost:5082/api/Transformers/translation?title=@result.Title&text=@result.Context&sector=@result.Sector">
+                                                    translation
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="http://localhost:5082/api/GeminiApi/generate-prompt?promptString=May you suggest questions about this text: @result.Context&txtPath=@Model.QuestionTxtFilePath">Questions.</a>
+                                            </li>
+                                        </ol>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No search results found or unable to fetch data.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+    function deleteTextDocument(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('messageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/PdfApi/DeleteTextDocument?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getTextDocument()
+        {
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/PdfApi/get-text-document?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var titleLink = row.insertCell(1);
+                            var name = row.insertCell(2);
+                            var createdAT = row.insertCell(3);
+
+
+                            id.textContent = item.id || "N/A";
+                            const link = document.createElement('a');
+                            link.href = `${item.offlineUrl || 'N/A'}`;
+                            link.textContent = item.title || 'N/A';
+                                                
+                            titleLink.appendChild(link);   
+                            name.textContent = item.name || 'N/A';                  
+                            createdAT.textContent = item.createdAT || 'N/A';
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getTextDocuments(){
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/PdfApi/get-text-documents`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var id = row.insertCell(0);
+                        var titleLink = row.insertCell(1);
+                        var name = row.insertCell(2);
+                        var createdAT = row.insertCell(3);
+
+                        id.textContent = item.id || "N/A";
+                        const link = document.createElement('a');
+                        link.href = `${item.offlineUrl || 'N/A'}`;
+                        link.textContent = item.title || 'N/A';
+                                            
+                        titleLink.appendChild(link);   
+                        name.textContent = item.name || 'N/A';                  
+                        createdAT.textContent = item.createdAT || 'N/A';
+                    });
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+
+        function searchTextDocuments(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/PdfApi/search-text-document?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var titleLink = row.insertCell(1);
+                            var name = row.insertCell(2);
+                            var createdAT = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            const link = document.createElement('a');
+                            link.href = `${item.offlineUrl || 'N/A'}`;
+                            link.textContent = item.title || 'N/A';
+                                                
+                            titleLink.appendChild(link);   
+                            name.textContent = item.name || 'N/A';                  
+                            createdAT.textContent = item.createdAT || 'N/A';
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function searchTextOccurences(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('textMatchingTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/TextAnalysisApi/search-occurences?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var title = row.insertCell(0);
+                            @* var searchString = row.insertCell(1); *@
+                            @* var occurrence = row.insertCell(2); *@
+                            var context = row.insertCell(1);
+                            var ttsSpeech = row.insertCell(2);
+                            var entities = row.insertCell(3);
+                            var sentiments = row.insertCell(4);
+                            var chunks = row.insertCell(5);
+
+
+                            title.textContent = `${item.id} | ${item.title}` || "N/A";
+                            @* searchString.textContent = item.searchString || "N/A";*@
+                            @* occurrence.textContent = item.occurrence || "N/A";*@
+                            context.textContent = item.context || 'N/A';
+
+                            const link1 = document.createElement('a');
+                            link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.context} || 'N/A'}`;
+                            link1.textContent = "Speak" || 'N/A';
+                            link1.style = "font-size: small;";
+                                                
+                            ttsSpeech.appendChild(link1); 
+
+                            const link2 = document.createElement('a');
+                            link2.href = `http://localhost:5082/api/TextAnalysisApi/get-entities?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                            link2.textContent = "Entities" || 'N/A';
+                            link2.style = "font-size: small;";
+                                                
+                            entities.appendChild(link2); 
+
+                            const link3 = document.createElement('a');
+                            link3.href = `http://localhost:5082/api/TextAnalysisApi/get-sentiments?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                            link3.textContent = "Sentiments" || 'N/A';
+                            link3.style = "font-size: small;";
+                                                
+                            sentiments.appendChild(link3); 
+
+                            const link4 = document.createElement('a');
+                            link4.href = `http://localhost:5082/api/TextAnalysisApi/get-noun-chunks?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                            link4.textContent = "Chunks" || 'N/A';
+                            link4.style = "font-size: small;";
+                                                
+                            chunks.appendChild(link4); 
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getTextOccurence(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('textMatchingTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/TextAnalysisApi/get-occurences?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var title = row.insertCell(0);
+                            @* var searchString = row.insertCell(1); *@
+                            @* var occurrence = row.insertCell(2); *@
+                            var context = row.insertCell(1);
+                            var ttsSpeech = row.insertCell(2);
+                            var entities = row.insertCell(3);
+                            var sentiments = row.insertCell(4);
+                            var chunks = row.insertCell(5);
+
+
+                            title.textContent = `${item.id} | ${item.title}` || "N/A";
+                            @* searchString.textContent = item.searchString || "N/A";*@
+                            @* occurrence.textContent = item.occurrence || "N/A";*@
+                            context.textContent = item.context || 'N/A';
+
+                            const link1 = document.createElement('a');
+                            link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.context || 'N/A'}`;
+                            link1.textContent = "Speak" || 'N/A';
+                            link1.style = "font-size: small;";
+                                                
+                            ttsSpeech.appendChild(link1); 
+
+                            const link2 = document.createElement('a');
+                            link2.href = `http://localhost:5082/api/TextAnalysisApi/get-entities?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                            link2.textContent = "Entities" || 'N/A';
+                            link2.style = "font-size: small;";
+                                                
+                            entities.appendChild(link2); 
+
+                            const link3 = document.createElement('a');
+                            link3.href = `http://localhost:5082/api/TextAnalysisApi/get-sentiments?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                            link3.textContent = "Sentiments" || 'N/A';
+                            link3.style = "font-size: small;";
+                                                
+                            sentiments.appendChild(link3); 
+                            const link4 = document.createElement('a');
+                            link4.href = `http://localhost:5082/api/TextAnalysisApi/get-noun-chunks?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                            link4.textContent = "Chunks" || 'N/A';
+                            link4.style = "font-size: small;";
+                                                
+                            chunks.appendChild(link4); 
+                        });
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getTextOccurences(){
+            const tableBody = document.getElementById('textMatchingTableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/TextAnalysisApi/get-occurences`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                        var row = tableBody.insertRow();
+                        var title = row.insertCell(0);
+                        @* var searchString = row.insertCell(1); *@
+                        @* var occurrence = row.insertCell(2); *@
+                        var context = row.insertCell(1);
+                        var ttsSpeech = row.insertCell(2);
+                        var entities = row.insertCell(3);
+                        var sentiments = row.insertCell(4);
+                        var chunks = row.insertCell(5);
+
+
+                        title.textContent = `${item.id} | ${item.title}` || "N/A";
+                        @* searchString.textContent = item.searchString || "N/A";*@
+                        @* occurrence.textContent = item.occurrence || "N/A";*@
+                        context.textContent = item.context || 'N/A';
+
+                        const link1 = document.createElement('a');
+                        link1.href = `http://localhost:5082/api/TextToSpeechApi/text-to-speech?text=${item.context || 'N/A'}`;
+                        link1.textContent = "Speak" || 'N/A';
+                        link1.style = "font-size: small;";
+                                            
+                        ttsSpeech.appendChild(link1); 
+
+                        const link2 = document.createElement('a');
+                        link2.href = `http://localhost:5082/api/TextAnalysisApi/get-entities?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                        link2.textContent = "Entities" || 'N/A';
+                        link2.style = "font-size: small;";
+                                            
+                        entities.appendChild(link2); 
+
+                        const link3 = document.createElement('a');
+                        link3.href = `http://localhost:5082/api/TextAnalysisApi/get-sentiments?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                        link3.textContent = "Sentiments" || 'N/A';
+                        link3.style = "font-size: small;";
+                                            
+                        sentiments.appendChild(link3); 
+
+                        const link4 = document.createElement('a');
+                        link4.href = `http://localhost:5082/api/TextAnalysisApi/get-noun-chunks?title=${item.title}&searchString=${item.searchString}&text=${item.context}`;
+                        link4.textContent = "Chunks" || 'N/A';
+                        link4.style = "font-size: small;";
+                                            
+                        chunks.appendChild(link4); 
+                    });
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function deleteOccurence(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('messageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/TextAnalysisApi/DeleteOccurence?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+    </script>
+}

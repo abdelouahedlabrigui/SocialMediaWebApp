@@ -1,0 +1,237 @@
+@page
+@model SocialMediaWebApp.Pages.FredAPI.FredAPIEndpoint
+@{
+    ViewData["Title"] = "FredAPIEndpoint";
+}
+
+<style>
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 1rem;
+        text-align: left;
+    }
+
+    .table thead {
+        background-color: #333;
+        color: #fff;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+</style>
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h2>Fred API Endpoints.</h2>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Description</label>
+                                <input type="text" id="description" name="description" class="form-control-plaintext" 
+                                    value="@Model.Description"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="jsonFile" class="form-label">Get Request</label>
+                                <input type="text" id="getRequest" name="getRequest" class="form-control-plaintext" 
+                                    value="@Model.GetRequest"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h2>Actions</h2>
+            </div>
+            <div class="card-body">
+                <hr>
+                <div class="mb-3">
+                    <label for="param" class="form-label">Param</label>
+                    <input type="text" id="param" class="form-control" autocomplete="off" spellcheck="false"/>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="deleteFredAPIEndpoint()">Delete Endpoint</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="getFredAPIEndpoint()">Get</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="getFredAPIEndpoints()">Get Endpoints</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="searchFredAPIEndpoints()">Search Endpoints</button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Description</th>
+                                <th>GetRequest</th>
+                                <th>CreatedAT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fredEndpointsTableBody">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                @if(Model.requestResponse != null){
+                    <p>@Model.requestResponse.Message</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+    function getFredAPIEndpoints(){
+            const tableBody = document.getElementById('fredEndpointsTableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/FredApi/get-fred-api-endpoints`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var description = row.insertCell(1);
+                            var getRequest = row.insertCell(2);
+                            var createdAT = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            description.textContent = item.description || 'N/A';
+                            getRequest.textContent = item.getRequest || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';                
+                        })
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function searchFredAPIEndpoints(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('fredEndpointsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/FredApi/search-fred-api-endpoints?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var description = row.insertCell(1);
+                            var getRequest = row.insertCell(2);
+                            var createdAT = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            description.textContent = item.description || 'N/A';
+                            getRequest.textContent = item.getRequest || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';                 
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function deleteFredAPIEndpoint(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('peopleMessageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/FredApi/DeleteFredAPIEndpoint?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getFredAPIEndpoint()
+        {
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('fredEndpointsTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/FredApi/get-fred-api-endpoint?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var id = row.insertCell(0);
+                            var description = row.insertCell(1);
+                            var getRequest = row.insertCell(2);
+                            var createdAT = row.insertCell(3);
+
+                            id.textContent = item.id || "N/A";
+                            description.textContent = item.description || 'N/A';
+                            getRequest.textContent = item.getRequest || 'N/A';
+                            createdAT.textContent = item.createdAT || 'N/A';                   
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+    </script>
+}

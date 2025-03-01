@@ -1,0 +1,475 @@
+@page
+@model SocialMediaWebApp.Pages.Trading.ArimaStockPrice
+@{
+    ViewData["Title"] = "Stock Price ARIMA";
+}
+
+<style>
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 1rem;
+        text-align: left;
+    }
+
+    .table thead {
+        background-color: #333;
+        color: #fff;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+    .card-header {
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 10px;
+        padding: 10px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-body {
+        text-align: center;
+    }
+
+    .plot {
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+</style>
+<h1>@ViewData["Title"]</h1>
+<hr>
+<div class="row">   
+    <div class="col">
+        <a class="nav-link text-dark" asp-area="" asp-page="/Trading/VolumeBasedFeatures">Volume Based Features</a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h2>Stock Price.</h2>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="company" class="form-label">Company</label>
+                                <input type="text" id="company" name="company" class="form-control-plaintext" 
+                                    value="@Model.Company"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="text" id="start_date" name="start_date" class="form-control-plaintext" 
+                                    value="@Model.StartDate"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="end_date" class="form-label">End Date</label>
+                                <input type="text" id="end_date" name="end_date" class="form-control-plaintext" 
+                                    value="@Model.EndDate"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="filename" class="form-label">Filename</label>
+                                <input type="text" id="filename" name="filename" class="form-control-plaintext" 
+                                    value="@Model.Filename"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Download</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h2>Actions</h2>
+            </div>
+            <div class="card-body">
+                <hr>
+                <div class="mb-3">
+                    <label for="param" class="form-label">Param</label>
+                    <input type="text" id="param" class="form-control" autocomplete="off" spellcheck="false"/>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="deleteStockPrice()">Delete</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="getStockPrice()">Get</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="getStockPrices()">Get Range</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <button class="btn btn-primary form-control-plaintext" 
+                            onclick="searchStockPrices()">Search</button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockPricesTableBody">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                @if(Model.requestResponse != null){
+                    <p>@Model.requestResponse.Message</p>
+                }
+            </div>
+            <hr>
+            <div class="form-group">
+                <button onclick="getStockPriceArimaTimeSeriesForecasting()" class="btn btn-primary">Get Results</button>
+            </div>
+            <hr>
+            <div id="card-container"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function getStockPrices(){
+            const tableBody = document.getElementById('stockPricesTableBody');
+            tableBody.innerHTML = "";
+            fetch(`http://localhost:5082/api/StockPricesApi/get-stock-prices`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var company = row.insertCell(0);
+                            var startDate = row.insertCell(1);
+                            var endDate = row.insertCell(2);
+
+                            var detail = row.insertCell(3);
+
+                            company.textContent = item.company || 'N/A';
+                            startDate.textContent = item.startDate || 'N/A';
+                            endDate.textContent = item.endDate || 'N/A';  
+
+                            const link = document.createElement('a');
+                            link.href = `http://localhost:5082/api/StockPricesApi/stock-price-time-series-forecasting-using-arima?company=${encodeURIComponent(item.company)}&start_date=${encodeURIComponent(item.startDate)}&end_date=${encodeURIComponent(item.endDate)}&filename=${encodeURIComponent(item.filename)}`;
+                            link.textContent = 'Generate';
+                                                
+                            detail.appendChild(link);                
+                        })
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
+                });
+        }
+        function searchStockPrices(){
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('stockPricesTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/StockPricesApi/search-stock-prices?search=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var company = row.insertCell(0);
+                            var startDate = row.insertCell(1);
+                            var endDate = row.insertCell(2);
+
+                            var detail = row.insertCell(3);
+
+                            company.textContent = item.company || 'N/A';
+                            startDate.textContent = item.startDate || 'N/A';
+                            endDate.textContent = item.endDate || 'N/A';  
+
+                            const link = document.createElement('a');
+                            link.href = `http://localhost:5082/api/StockPricesApi/stock-price-time-series-forecasting-using-arima?company=${encodeURIComponent(item.company)}&start_date=${encodeURIComponent(item.startDate)}&end_date=${encodeURIComponent(item.endDate)}&filename=${encodeURIComponent(item.filename)}`;
+                            link.textContent = 'Generate';
+                                                
+                            detail.appendChild(link);                  
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function deleteStockPrice(){
+            const param = document.getElementById('param');
+            const deleteMessage = document.getElementById('peopleMessageResponse');
+            if(param){
+                fetch(`http://localhost:5082/api/StockPricesApi/DeleteStockPrice?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        deleteMessage.innerHTML = data.message;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        function getStockPrice()
+        {
+            const param = document.getElementById('param');
+            const tableBody = document.getElementById('stockPricesTableBody');
+            tableBody.innerHTML = "";
+            if(param){
+                fetch(`http://localhost:5082/api/StockPricesApi/get-stock-price?id=${encodeURIComponent(param.value)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            var row = tableBody.insertRow();
+                            var company = row.insertCell(0);
+                            var startDate = row.insertCell(1);
+                            var endDate = row.insertCell(2);
+
+                            var detail = row.insertCell(3);
+
+                            company.textContent = item.company || 'N/A';
+                            startDate.textContent = item.startDate || 'N/A';
+                            endDate.textContent = item.endDate || 'N/A';  
+
+                            const link = document.createElement('a');
+                            link.href = `http://localhost:5082/api/StockPricesApi/stock-price-time-series-forecasting-using-arima?company=${encodeURIComponent(item.company)}&start_date=${encodeURIComponent(item.startDate)}&end_date=${encodeURIComponent(item.endDate)}&filename=${encodeURIComponent(item.filename)}`;
+                            link.textContent = 'Generate';
+                                                
+                            detail.appendChild(link);                  
+                        })
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            }
+        }
+        
+        function getStockPriceArimaTimeSeriesForecasting() {
+            const company = document.getElementById('company').value;
+            const start_date = document.getElementById('start_date').value;
+            const end_date = document.getElementById('end_date').value;
+
+            if (company && start_date && end_date) {
+                fetch(`http://localhost:5082/api/StockPricesApi/get-stock-price-arima-time-series-forecasting?company=${encodeURIComponent(company)}&start_date=${encodeURIComponent(start_date)}&end_date=${encodeURIComponent(end_date)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        displayCards(data);
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with your fetch operation:', error);
+                    });
+            } else {
+                alert("Please fill out all fields.");
+            }
+        }
+        function createImageElement(encodedData) {
+            if (!encodedData) {
+                return '<span>N/A</span>'; // Fallback for missing data
+            }
+
+            try {
+                const decodedSrc = atob(encodedData); // Decode Base64 string
+                return `<img src="data:image/png;base64,${decodedSrc}" alt="Plot" />`; // Return image tag with decoded data
+            } catch (error) {
+                console.error('Error decoding image data:', error);
+                return '<span>Invalid image data</span>'; // Fallback for decoding errors
+            }
+        }
+        function displayCards(data) {
+            const cardContainer = document.getElementById('card-container');
+            cardContainer.innerHTML = ''; // Clear previous cards
+            if (data.arimaVisualizationList) {
+                data.arimaVisualizationList.forEach(item => {
+                    
+                    // Create a card container
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    // Create card body
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body';
+
+                    // Create and append the first image
+                    if (item.visualizedTrendsAndSeasonality) {
+                        const img1 = document.createElement('img');
+                        img1.src = `data:image/png;base64, ${item.visualizedTrendsAndSeasonality}`;
+                        img1.alt = 'Forecast Plot';
+                        img1.className = 'plot';
+                        cardBody.appendChild(img1);
+                    } else {
+                        cardBody.innerHTML += '<p>Current plot not available.</p>';
+                    }
+
+                    // Append additional images if necessary
+                    if (item.visualizedDifferencedTimeSeries) {
+                        const img2 = document.createElement('img');
+                        img2.src = `data:image/png;base64, ${item.visualizedDifferencedTimeSeries}`;
+                        img2.alt = 'Forecast Plot';
+                        img2.className = 'plot';
+                        cardBody.appendChild(img2);
+                    } else {
+                        cardBody.innerHTML += '<p>Forecast plot not available.</p>';
+                    }
+
+                    // Append additional images if necessary
+                    if (item.visualizedARIMAModelEvaluation) {
+                        const img3 = document.createElement('img');
+                        img3.src = `data:image/png;base64, ${item.visualizedARIMAModelEvaluation}`;
+                        img3.alt = 'Forecast Plot';
+                        img3.className = 'plot';
+                        cardBody.appendChild(img3);
+                    } else {
+                        cardBody.innerHTML += '<p>Forecast plot not available.</p>';
+                    }
+
+                    // Append additional images if necessary
+                    if (item.visualizedForecastFutureValues) {
+                        const img4 = document.createElement('img');
+                        img4.src = `data:image/png;base64, ${item.visualizedForecastFutureValues}`;
+                        img4.alt = 'Forecast Plot';
+                        img4.className = 'plot';
+                        cardBody.appendChild(img4);
+                    } else {
+                        cardBody.innerHTML += '<p>Forecast plot not available.</p>';
+                    }
+
+                    // Append additional images if necessary
+                    if (item.visualizedARIMAModelSummary) {
+                        const img5 = document.createElement('img');
+                        img5.src = `data:image/png;base64, ${item.visualizedARIMAModelSummary}`;
+                        img5.alt = 'Forecast Plot';
+                        img5.className = 'plot';
+                        cardBody.appendChild(img5);
+                    } else {
+                        cardBody.innerHTML += '<p>Forecast plot not available.</p>';
+                    }
+
+                    // Append card body to card and card to container
+                    card.appendChild(cardBody);
+                    cardContainer.appendChild(card);
+
+                });
+            }
+
+            // Display StockPriceAdfTestCriticalValueList
+            if (data.stockPriceAdfTestCriticalValueList) {
+                data.stockPriceAdfTestCriticalValueList.forEach(item => {
+                    const card = createCard('ADF Test Critical Values', `
+                        Stationarity: ${item.stationarity || 'N/A'}<br>
+                        Critical Values: ${item.criticalValues || 'N/A'}
+                    `);
+                    cardContainer.appendChild(card);
+                });
+            }
+
+            // Display StockPriceAdfTestResultList
+            if (data.stockPriceAdfTestResultList) {
+                data.stockPriceAdfTestResultList.forEach(item => {
+                    const card = createCard('ADF Test Results', `
+                        Stationarity: ${item.stationarity || 'N/A'}<br>
+                        ADF Statistic: ${item.adFStatistic || 'N/A'}<br>
+                        P-Value: ${item.pValue || 'N/A'}
+                    `);
+                    cardContainer.appendChild(card);
+                });
+            }
+
+            // Display StockPriceArimaCoefficientList
+            if (data.stockPriceArimaCoefficientList) {
+                data.stockPriceArimaCoefficientList.forEach(item => {
+                    const card = createCard('ARIMA Coefficients', `
+                        Terms: ${item.terms || 'N/A'}<br>
+                        Coefficients: ${item.coefficients || 'N/A'}<br>
+                        Standard Errors: ${item.standardErrors || 'N/A'}
+                    `);
+                    cardContainer.appendChild(card);
+                });
+            }
+
+            // Display StockPriceArimaMetricList
+            if (data.stockPriceArimaMetricList) {
+                data.stockPriceArimaMetricList.forEach(item => {
+                    const card = createCard('ARIMA Metrics', `
+                        AIC: ${item.aic || 'N/A'}<br>
+                        BIC: ${item.bic || 'N/A'}
+                    `);
+                    cardContainer.appendChild(card);
+                });
+            }
+        }
+
+        function createCard(title, content) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const cardHeader = document.createElement('div');
+            cardHeader.className = 'card-header';
+            cardHeader.textContent = title;
+
+            const cardBody = document.createElement('div');
+            cardBody.innerHTML = content;
+
+            card.appendChild(cardHeader);
+            card.appendChild(cardBody);
+
+            return card;
+        }
+    </script>
+}

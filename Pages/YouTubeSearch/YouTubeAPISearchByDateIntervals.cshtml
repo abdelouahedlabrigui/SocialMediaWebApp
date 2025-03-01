@@ -1,0 +1,127 @@
+@page
+@model SocialMediaWebApp.Pages.YouTubeSearch.YouTubeAPISearchByDateIntervals
+@{
+    ViewData["Title"] = "YT API Search By Date";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+
+<style>
+    .card-header{
+        background-color: black;
+        color: white;
+        text-align: center;
+    }
+    .news-image {
+        max-width: 350px;
+        height: auto;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+</style>
+
+<h1>Search YouTube API</h1>
+
+<div class="card">
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-header">
+                <h4>Search by date intervals</h4>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="query" class="form-label">Search Query</label>
+                                <input type="text" id="query" name="query" class="form-control" value="@Model.Query" autocomplete="off" spellcheck="false"/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maxResults" class="form-label">Max Results</label>
+                                <input type="text" id="maxResults" name="maxResults" class="form-control" value="@Model.MaxResults" autocomplete="off" spellcheck="false"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start date</label>
+                                <input type="text" id="startDate" name="startDate" class="form-control" value="@Model.StartDate"  autocomplete="off" spellcheck="false"/>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End date</label>
+                                <input type="text" id="endDate" name="endDate" class="form-control" value="@Model.EndDate"  autocomplete="off" spellcheck="false"/>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card-header">
+                <h4>Search Results</h4>
+            </div>
+            <div class="card-body">
+                @if (Model.SearchResults != null && Model.SearchResults.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Video Id</th>
+                                <th>Title</th>
+                                <th>ThumbnailUrl</th>
+                                <th>Description</th>
+                                <th>Published At</th>
+                                <th>Channel Title</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model.SearchResults)
+                            {
+                                <tr>
+                                    <td>@result.VideoId</td>
+                                    <td>@result.Title</td>
+                                    <td>
+                                        <img src="@result.ThumbnailUrl" alt="News Image" class="news-image" />
+                                    </td>
+                                    <td>@result.Description</td>
+                                    <td>Published At: @result.PublishedAt, Duration: @result.Duration</td>
+                                    <td>@result.ChannelTitle</td>
+                                    <td>
+                                        <ul>
+                                            <li>
+                                                <a href="http://localhost:5082/api/YouTubeApiSearch/post-yt-video-search?videoId=@result.VideoId&title=@result.Title&description=@result.Description&publishedAt=@result.PublishedAt.ToString()&channelTitle=@result.ChannelTitle&thumbnailUrl=@result.ThumbnailUrl&duration=@result.Duration">
+                                                    Add
+                                                </a>
+                                            </li>
+                                            <li><a asp-page="/YouTubeSearch/VideoDetails" asp-route-videoId="@result.VideoId" class="btn btn-primary">View</a></li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No search results found or unable to fetch data.</p>
+                }
+
+                @if (!ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <p>@error.ErrorMessage</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

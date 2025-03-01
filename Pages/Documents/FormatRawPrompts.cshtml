@@ -1,0 +1,52 @@
+@page
+@model SocialMediaWebApp.Pages.Documents.FormatRawPrompts
+@{
+    ViewData["Title"] = "Format Raw Prompts";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h2>JSON Formatter</h2>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="row">
+                        <div class="col">
+                            <div class="mb-3">
+                                <label for="text" class="form-label">Text</label>
+                                <textarea 
+                                    name="text" id="text" 
+                                    class="form-control-plaintext" value="@Model.Text"
+                                    autocomplete="off" spellcheck="false" required>
+
+                                </textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type</label>
+                                <input type="text" id="type" name="type" class="form-control-plaintext" 
+                                    value="@Model.Type"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="jsonFile" class="form-label">Json File</label>
+                                <input type="text" id="jsonFile" name="jsonFile" class="form-control-plaintext" 
+                                    value="@Model.JsonFile"
+                                    autocomplete="off" spellcheck="false" required/>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        @if(Model.Message != null){
+            <p>@Model.Message</p>
+        }
+    </div>
+</div>
