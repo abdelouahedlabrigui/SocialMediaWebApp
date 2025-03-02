@@ -123,7 +123,8 @@ cd YouTubeWebAPI
 dotnet run
 ```
 
-    - Frontend:
+- Frontend:
+
 ```bash
 cd ../SocialMediaWebApp
 dotnet run
